@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.cineby.tv.presentation.SearchViewModel
 import com.cineby.tv.ui.components.TvCard
@@ -36,7 +35,6 @@ fun SearchScreen(
     val query by viewModel.query.collectAsState()
     val suggestions by viewModel.suggestions.collectAsState()
     val results by viewModel.results.collectAsState()
-    val context = LocalContext.current
 
     val voiceLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val spoken = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull().orEmpty()

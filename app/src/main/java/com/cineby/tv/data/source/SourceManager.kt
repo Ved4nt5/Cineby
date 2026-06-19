@@ -5,10 +5,11 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.cineby.tv.data.model.SourceConfig
+import com.cineby.tv.util.SourceValidator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
@@ -52,9 +53,16 @@ class SourceManager @Inject constructor(
         return runCatching { okHttpClient.newCall(request).execute().isSuccessful }.getOrDefault(false)
     }
 
+    suspend fun selectFirstReachableSource(): String? {
+        val config = sourceConfig.first()
+        val candidates = listOf(config.activeUrl) + config.fallbackUrls
+        val reachable = candidates.firstOrNull { testConnection(it) } ?: return null
+        setActiveSource(reachable)
+        return reachable
+    }
+
     fun isValidSource(url: String): Boolean {
-        val parsed = url.trim().toHttpUrlOrNull() ?: return false
-        return parsed.scheme == "https"
+        return SourceValidator.isValidHttpsUrl(url)
     }
 
     fun exportConfig(config: SourceConfig): String {

@@ -14,7 +14,6 @@ import com.cineby.tv.data.source.SourceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,17 +25,26 @@ class MediaRepository @Inject constructor(
     private val scraper: CinebyScraper,
     private val dao: CinebyDao
 ) {
+    private val detailsCache = linkedMapOf<String, MediaItem>()
+    private var homeCache: Pair<Long, HomeFeed>? = null
+
     val sourceConfig: Flow<SourceConfig> = sourceManager.sourceConfig
     val favorites = dao.observeFavorites()
     val continueWatching = dao.observeWatchProgress()
 
     suspend fun loadHomeFeed(): HomeFeed = withContext(Dispatchers.IO) {
+        homeCache?.takeIf { (timestamp, _) -> System.currentTimeMillis() - timestamp < HOME_CACHE_TTL_MS }?.second?.let {
+            return@withContext it
+        }
         val continueWatchingItems = dao.observeWatchProgress().first().map { it.toMediaItem() }
-        fetchFromSources { service ->
+        val feed = fetchFromSources { service ->
             service.getHome().body()?.string()?.let { raw ->
                 CinebyParser.parseHome(raw, continueWatchingItems)
             }
         } ?: fallbackHome(continueWatchingItems)
+        homeCache = System.currentTimeMillis() to feed
+        prefetchTopDetails(feed)
+        feed
     }
 
     suspend fun search(query: String): List<MediaItem> = withContext(Dispatchers.IO) {
@@ -47,9 +55,16 @@ class MediaRepository @Inject constructor(
     }
 
     suspend fun details(id: String): MediaItem? = withContext(Dispatchers.IO) {
+        detailsCache[id]?.let { return@withContext it }
         fetchFromSources { service ->
             service.getContentDetails(id).body()?.string()?.let(CinebyParser::parseDetails)
-        }
+        }?.also { detailsCache[id] = it }
+    }
+
+    suspend fun searchPage(query: String, page: Int, pageSize: Int = 20): List<MediaItem> {
+        val all = search(query)
+        val start = (page - 1).coerceAtLeast(0) * pageSize
+        return all.drop(start).take(pageSize)
     }
 
     suspend fun setSource(url: String): Result<Unit> = sourceManager.setActiveSource(url)
@@ -79,6 +94,8 @@ class MediaRepository @Inject constructor(
 
     suspend fun clearCache() {
         dao.clearWatchProgress()
+        detailsCache.clear()
+        homeCache = null
     }
 
     suspend fun addFavorite(item: MediaItem) {
@@ -99,6 +116,7 @@ class MediaRepository @Inject constructor(
     fun observeIsFavorite(mediaId: String): Flow<Boolean> = dao.observeIsFavorite(mediaId)
 
     private suspend fun <T> fetchFromSources(request: suspend (service: com.cineby.tv.data.remote.CinebyApiService) -> T?): T? {
+        sourceManager.selectFirstReachableSource()
         val config = sourceManager.sourceConfig.first()
         val urls = listOf(config.activeUrl) + config.fallbackUrls.filterNot { it == config.activeUrl }
         urls.forEach { url ->
@@ -118,6 +136,20 @@ class MediaRepository @Inject constructor(
             trendingShows = scraped.filter { it.type == ContentType.SHOW }.take(20),
             recentlyAdded = scraped.takeLast(20)
         )
+    }
+
+    private suspend fun prefetchTopDetails(feed: HomeFeed) {
+        val ids = (feed.hero + feed.trendingMovies + feed.trendingShows).map { it.id }.distinct().take(PREFETCH_SIZE)
+        ids.forEach { id ->
+            if (!detailsCache.containsKey(id)) {
+                runCatching { details(id) }
+            }
+        }
+    }
+
+    companion object {
+        private const val HOME_CACHE_TTL_MS = 2 * 60 * 1000L
+        private const val PREFETCH_SIZE = 8
     }
 }
 
