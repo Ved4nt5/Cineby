@@ -1,20 +1,6 @@
-// Cineby/app/build.gradle.kts (Module-level / App-level)
-
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
-}
-
-android {
-    // ... your compileSdk, targetSdk, etc.
-}
-
-dependencies {
-    // 💡 PASTE YOUR DEPENDENCIES HERE:
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("com.google.android.material:material:1.12.0")
-}
-    // Hilt, KSP, and other libraries go here too
+    id("com.android.application") version "8.6.0" apply false
+    id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+    id("com.google.devtools.ksp") version "1.9.24-1.0.20" apply false
+    id("com.google.dagger.hilt.android") version "2.52" apply false
 }
