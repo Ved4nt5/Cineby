@@ -1,0 +1,96 @@
+Create a production-ready Android TV OTT streaming application using Kotlin and Jetpack Compose for Android TV.
+Design Requirements
+• Modern, premium OTT-style UI inspired by Netflix, Disney+, and Stremio.
+• Dark theme with smooth animations and TV-optimized navigation.
+• Large focus indicators for D-Pad/remote navigation.
+• 4K-ready layouts.
+• Fast loading and caching.
+• Material 3 design principles.
+Core Features
+Home Screen
+• Hero banner carousel.
+• Continue Watching section.
+• Trending Movies.
+• Trending TV Shows.
+• Recently Added.
+• Search button.
+• Settings button.
+Content Details Page
+• Poster and backdrop image.
+• Title, rating, release year, genres.
+• Description.
+• Play button.
+• Episode list for TV series.
+• Related content recommendations.
+Video Player
+• ExoPlayer integration.
+• Hardware acceleration.
+• Subtitle support.
+• Audio track selection.
+• Playback speed controls.
+• Resume watching progress.
+• Skip intro button.
+• Auto next episode.
+Search
+• Instant search suggestions.
+• Voice search support for Android TV.
+• Search movies, TV shows, and anime.
+Data Source Integration
+Default API source:
+text
+https://cineby.at
+
+The app should scrape/use Cineby's publicly available content endpoints and dynamically display movies and shows.
+Dynamic Source URL System
+Since Cineby's domain changes frequently, implement:
+Source Manager
+• Settings → Source Configuration.
+• Allow user to change base URL manually.
+• Example: 
+◦ https://cineby.at
+◦ https://cineby.xyz
+◦ https://cineby.something
+Features
+• Save URL locally.
+• Validate URL before saving.
+• Test Connection button.
+• Automatically use saved URL throughout the app.
+• Fallback URL list support.
+• Import/export source configuration.
+• Ability to switch sources without reinstalling the app.
+Settings
+• Source URL Manager.
+• Theme settings.
+• Subtitle preferences.
+• Playback preferences.
+• Cache management.
+• About page.
+Architecture
+• MVVM architecture.
+• Repository pattern.
+• Dependency Injection with Hilt.
+• Coroutines and Flow.
+• Retrofit + OkHttp.
+• Room Database for watch history and continue watching.
+• Modular code structure.
+Performance
+• Android TV optimized.
+• Memory efficient.
+• Lazy loading and pagination.
+• Image caching using Coil.
+• Background data prefetching.
+Additional Features
+• Favorites/Watchlist.
+• Continue Watching sync.
+• Recently Watched.
+• Auto-update source URL configuration.
+• Error handling and retry mechanisms.
+• Beautiful loading skeletons and empty states.
+Deliverables
+• Complete Android Studio project.
+• Kotlin source code.
+• Jetpack Compose UI.
+• Android TV launcher support.
+• Release-ready APK generation configuration.
+• Clean, maintainable, and documented code.
+The final result should look and feel like a premium commercial OTT streaming application specifically designed for Android TV remotes and large-screen televisions.
