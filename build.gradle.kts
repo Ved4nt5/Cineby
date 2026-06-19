@@ -4,3 +4,6 @@ plugins {
     id("com.google.devtools.ksp") version "1.9.24-1.0.20" apply false
     id("com.google.dagger.hilt.android") version "2.52" apply false
 }
+dependencies {
+    implementation("com.google.android.material:material:1.12.0")
+}
